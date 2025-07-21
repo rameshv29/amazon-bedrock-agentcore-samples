@@ -96,5 +96,9 @@ response = agentcore_client.create_gateway_target(
     credentialProviderConfigurations=credential_config, 
     targetConfiguration=lambda_target_config)
 
+target_id = response['targetId']
+print(f"Target ID: {target_id}")
 
-print(f"Target ID: {response['targetId']}")
+# Create target_config.env file
+with open('target_config.env', 'w') as f:
+    f.write(f"TARGET_ID={target_id}\n")
