@@ -147,8 +147,8 @@ These files contain sensitive information and are excluded from Git via `.gitign
 
 Once set up, you can use the DB Performance Analyzer through Amazon Q:
 
-1. Open Amazon Q in your IDE
-2. Select the "db-performance-analyzer" agent
+1. Open Amazon Q CLI in your command prompt `q chat`
+2. It will load the "db-performance-analyzer" agent
 3. Ask questions about database performance, such as:
    - "Analyze slow queries in my production database"
    - "Check for connection management issues in dev environment"
@@ -307,14 +307,6 @@ Here are some example queries you can ask the DB Performance Analyzer:
 - "Explain the execution plan for this query: SELECT * FROM users WHERE email LIKE '%example.com'"
 - "Extract the DDL for the users table in my database"
 
-## Future Enhancements
-
-- Support for additional database engines (MySQL, SQL Server, Oracle)
-- Integration with monitoring tools like CloudWatch and Prometheus
-- Automated performance tuning recommendations
-- Historical performance analysis and trend detection
-- Query rewriting suggestions
-- Cost-based optimization recommendations
 
 ## Contributing
 
