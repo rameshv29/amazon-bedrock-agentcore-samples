@@ -11,6 +11,14 @@ def main():
         "../config/cognito_config.env",  # When run from scripts directory
     ]
     
+    # If running from scripts directory, ensure we look in the right place
+    current_dir = os.getcwd()
+    if os.path.basename(current_dir) == "scripts":
+        config_paths = [
+            "../config/cognito_config.env",  # When run from scripts directory
+            "./config/cognito_config.env",  # Fallback
+        ]
+    
     config_file = None
     for path in config_paths:
         if os.path.exists(path):
@@ -80,6 +88,13 @@ def main():
             "./config/gateway_config.env",  # When run from project root
             "../config/gateway_config.env",  # When run from scripts directory
         ]
+        
+        # If running from scripts directory, ensure we look in the right place
+        if os.path.basename(current_dir) == "scripts":
+            gateway_config_paths = [
+                "../config/gateway_config.env",  # When run from scripts directory
+                "./config/gateway_config.env",  # Fallback
+            ]
         
         gateway_id = None
         for path in gateway_config_paths:

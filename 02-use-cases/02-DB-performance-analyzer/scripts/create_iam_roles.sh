@@ -123,6 +123,36 @@ if [[ $LAMBDA_ROLE_EXISTS != "not_exists" ]]; then
     aws iam attach-role-policy \
       --role-name DBAnalyzerLambdaRole \
       --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      
+    # Ensure SSM Parameter Store and Secrets Manager access policy is attached
+    echo "Ensuring SSM and Secrets Manager access policy is attached..."
+    SSM_SECRETS_POLICY='{
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "ssm:GetParameter",
+            "ssm:GetParameters",
+            "ssm:GetParametersByPath"
+          ],
+          "Resource": "arn:aws:ssm:*:*:parameter/AuroraOps/*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret"
+          ],
+          "Resource": "arn:aws:secretsmanager:*:*:secret:*"
+        }
+      ]
+    }'
+    
+    aws iam put-role-policy \
+      --role-name DBAnalyzerLambdaRole \
+      --policy-name SSMSecretsAccessPolicy \
+      --policy-document "$SSM_SECRETS_POLICY"
 else
     # Create Lambda function role
     echo "Creating Lambda function role..."
@@ -154,21 +184,42 @@ else
     aws iam attach-role-policy \
       --role-name DBAnalyzerLambdaRole \
       --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      
+    # Attach SSM Parameter Store and Secrets Manager access policy
+    SSM_SECRETS_POLICY='{
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "ssm:GetParameter",
+            "ssm:GetParameters",
+            "ssm:GetParametersByPath"
+          ],
+          "Resource": "arn:aws:ssm:*:*:parameter/AuroraOps/*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret"
+          ],
+          "Resource": "arn:aws:secretsmanager:*:*:secret:*"
+        }
+      ]
+    }'
+    
+    aws iam put-role-policy \
+      --role-name DBAnalyzerLambdaRole \
+      --policy-name SSMSecretsAccessPolicy \
+      --policy-document "$SSM_SECRETS_POLICY"
 fi
 
 # Save role ARNs to config file
 # Create config directory if it doesn't exist
-mkdir -p ../config
 mkdir -p ./config
 
-# Save to both possible locations
-cat > ../config/iam_config.env << EOF
-export GATEWAY_ROLE_ARN=$GATEWAY_ROLE_ARN
-export LAMBDA_ROLE_ARN=$LAMBDA_ROLE_ARN
-export ACCOUNT_ID=$ACCOUNT_ID
-export AWS_REGION=$REGION
-EOF
-
+# Save to the project's config directory
 cat > ./config/iam_config.env << EOF
 export GATEWAY_ROLE_ARN=$GATEWAY_ROLE_ARN
 export LAMBDA_ROLE_ARN=$LAMBDA_ROLE_ARN

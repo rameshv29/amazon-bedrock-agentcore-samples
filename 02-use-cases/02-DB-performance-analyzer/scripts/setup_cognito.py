@@ -37,21 +37,20 @@ export COGNITO_DISCOVERY_URL={cognito_result['authorizer_config']['customJWTAuth
 export COGNITO_ACCESS_TOKEN={token}
 """
     
-    # Save to all possible config locations to ensure it's found
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Save in ../config (when run from scripts directory)
-    os.makedirs(os.path.join(script_dir, "../config"), exist_ok=True)
-    with open(os.path.join(script_dir, "../config/cognito_config.env"), "w") as f:
-        f.write(config_content)
-    print(f"Saved Cognito configuration to {os.path.join(script_dir, '../config/cognito_config.env')}")
-    
-    # Also save in ./config (when run from project root)
+    # Save to the project's config directory
     current_dir = os.getcwd()
     os.makedirs(os.path.join(current_dir, "config"), exist_ok=True)
     with open(os.path.join(current_dir, "config/cognito_config.env"), "w") as f:
         f.write(config_content)
     print(f"Saved Cognito configuration to {os.path.join(current_dir, 'config/cognito_config.env')}")
+    
+    # If running from scripts directory, create a symlink to the parent config directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.basename(current_dir) == "scripts":
+        print("Running from scripts directory, ensuring config is accessible...")
+        config_path = os.path.join(script_dir, "../config")
+        if not os.path.exists(config_path):
+            os.makedirs(config_path, exist_ok=True)
     
     print("Cognito setup completed successfully")
     

@@ -15,7 +15,7 @@ lambda_target_config = {
                 "inlinePayload": [
                     {
                         "name": "slow_query",
-                        "description": "Analyzes slow running queries using pg_stat_statements. Get the environment from the user and use the action_type value as slow_query",
+                        "description": "Analyzes slow running queries using pg_stat_statements. Get the environment from the user. Use action_type default value as slow_query",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -31,7 +31,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "connection_management_issues",
-                        "description": "Analyzes connection management issues using pg_stat_statements. Get the environment from the user and use the action_type value as connection_management_issues",
+                        "description": "Analyzes connection management issues using pg_stat_statements. Get the environment from the user. Use action_type default value as connection_management_issues",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -47,7 +47,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "index_analysis",
-                        "description": "Analyzes the index using pg_stat_statements. Get the environment from the user and use the action_type value as index_analysis",
+                        "description": "Analyzes the index using pg_stat_statements. Get the environment from the user. Use action_type default value as index_analysis",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -63,7 +63,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "autovacuum_analysis",
-                        "description": "Analyzes autovacuum using pg_stat_statements. Get the environment from the user and use the action_type value as autovacuum_analysis",
+                        "description": "Analyzes autovacuum using pg_stat_statements. Get the environment from the user. Use action_type default value as autovacuum_analysis",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -79,7 +79,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "io_analysis",
-                        "description": "Analyzes IO issues in database using pg_stat_statements. Get the environment from the user and use the action_type value as io_analysis",
+                        "description": "Analyzes IO issues in database using pg_stat_statements. Get the environment from the user. Use action_type default value as io_analysis",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -95,7 +95,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "replication_analysis",
-                        "description": "Analyzes replciation issues using pg_stat_statements. Get the environment from the user and use the action_type value as replication_analysis",
+                        "description": "Analyzes replciation issues using pg_stat_statements. Get the environment from the user. Use action_type default value as replication_analysis",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -111,7 +111,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "system_health",
-                        "description": "Analyzes systems health using pg_stat_statements. Get the environment from the user and use the action_type value as system_health",
+                        "description": "Analyzes systems health using pg_stat_statements. Get the environment from the user. Use action_type default value as system_health",
                         "inputSchema": {
                             "type": "object",
                             "properties": {

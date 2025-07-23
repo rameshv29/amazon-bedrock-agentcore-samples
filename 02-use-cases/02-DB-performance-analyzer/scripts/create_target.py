@@ -1,5 +1,10 @@
 import boto3
 import os
+import sys
+
+# Get the script directory and project directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(script_dir)
 
 agentcore_client = boto3.client(
     'bedrock-agentcore-control', 
@@ -8,7 +13,12 @@ agentcore_client = boto3.client(
 )
 
 # Load Lambda ARNs
-with open('../config/lambda_config.env', 'r') as f:
+config_file = os.path.join(project_dir, "config", "lambda_config.env")
+if not os.path.exists(config_file):
+    print(f"Error: Lambda config file not found at {config_file}")
+    sys.exit(1)
+
+with open(config_file, 'r') as f:
     for line in f:
         if line.startswith('export '):
             key, value = line.replace('export ', '').strip().split('=', 1)
@@ -86,7 +96,8 @@ response = agentcore_client.create_gateway_target(
 print(f"DB Performance Analyzer target created with ID: {response['targetId']}")
 
 # Save Target configuration to file
-with open('../config/target_config.env', 'w') as f:
+target_config_file = os.path.join(project_dir, "config", "target_config.env")
+with open(target_config_file, 'w') as f:
     f.write(f"export TARGET_ID={response['targetId']}\n")
 
 # Create PGStat target configuration
@@ -198,5 +209,6 @@ pgstat_response = agentcore_client.create_gateway_target(
 print(f"PGStat target created with ID: {pgstat_response['targetId']}")
 
 # Save PGStat Target configuration to file
-with open('../config/pgstat_target_config.env', 'w') as f:
+pgstat_config_file = os.path.join(project_dir, "config", "pgstat_target_config.env")
+with open(pgstat_config_file, 'w') as f:
     f.write(f"export PGSTAT_TARGET_ID={pgstat_response['targetId']}\n")

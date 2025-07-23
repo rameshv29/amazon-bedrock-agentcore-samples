@@ -186,6 +186,10 @@ if [ -f config/vpc_config.env ]; then
         done
         
         # Delete Lambda security group
+        # Clean up VPC endpoints first
+        echo "Cleaning up VPC endpoints..."
+        ./scripts/cleanup_vpc_endpoints.sh || echo "Failed to clean up VPC endpoints, continuing..."
+        
         echo "Deleting Lambda security group $LAMBDA_SECURITY_GROUP_ID"
         aws ec2 delete-security-group \
             --group-id $LAMBDA_SECURITY_GROUP_ID \

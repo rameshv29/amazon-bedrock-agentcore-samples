@@ -17,22 +17,7 @@ The DB Performance Analyzer is an AI-powered assistant that helps database admin
 
 ## Architecture
 
-```
-┌─────────────────┐     ┌───────────────────┐     ┌─────────────────┐
-│                 │     │                   │     │                 │
-│   Amazon Q      │────▶│  AgentCore        │────▶│  Lambda         │
-│   IDE Plugin    │     │  Gateway          │     │  Functions      │
-│                 │     │                   │     │  (in VPC)       │
-└─────────────────┘     └───────────────────┘     └────────┬────────┘
-                                                           │
-                                                           ▼
-                                                  ┌─────────────────┐
-                                                  │                 │
-                                                  │  PostgreSQL     │
-                                                  │  Database       │
-                                                  │  (in VPC)       │
-                                                  └─────────────────┘
-```
+![DB performance analyzer architecture](./images/db-analyzer-architecture.png)
 
 ### VPC Connectivity
 
@@ -42,6 +27,7 @@ The Lambda functions are deployed in the same VPC as your database, allowing sec
 2. **Security Group Configuration**: Creates a dedicated security group for Lambda functions and configures the database security group to allow access
 3. **Private Network Communication**: All database traffic stays within the VPC, never traversing the public internet
 4. **Secure Credential Management**: Database credentials are stored in AWS Secrets Manager and accessed securely by the Lambda functions
+5. **VPC Endpoints**: Properly configured VPC endpoints for AWS services like Secrets Manager and SSM with correct DNS settings
 
 ## Process Flow
 
@@ -58,6 +44,7 @@ The Lambda functions are deployed in the same VPC as your database, allowing sec
 .
 ├── README.md               # This file
 ├── setup.sh                # Main setup script
+├── setup_database.sh       # Database configuration script
 ├── cleanup.sh              # Cleanup script
 ├── config/                 # Configuration files (generated during setup)
 │   └── *.env               # Environment-specific configuration files (not committed to Git)
@@ -66,8 +53,10 @@ The Lambda functions are deployed in the same VPC as your database, allowing sec
     ├── create_iam_roles.sh # Creates necessary IAM roles
     ├── create_lambda.sh    # Creates Lambda functions
     ├── create_target.py    # Creates Gateway targets
+    ├── lambda-target-analyze-db-performance.py # Performance analysis tools
+    ├── lambda-target-analyze-db-slow-query.py  # Slow query analysis tools
     ├── get_token.py        # Gets/refreshes authentication token
-    └── ...                 # Other supporting scripts
+    └── test_vpc_connectivity.py # Tests connectivity to AWS services
 ```
 
 ### Configuration Files
@@ -79,6 +68,8 @@ The setup process automatically generates several configuration files in the `co
 - **iam_config.env**: Contains IAM role ARNs and account information
 - **db_dev_config.env/db_prod_config.env**: Contains database connection information
 - **vpc_config.env**: Contains VPC, subnet, and security group IDs
+- **target_config.env**: Contains Gateway target configuration
+- **pgstat_target_config.env**: Contains configuration for the pg_stat_statements target
 
 These files contain sensitive information and are excluded from Git via `.gitignore`.
 
@@ -93,6 +84,7 @@ These files contain sensitive information and are excluded from Git via `.gitign
 - Permissions to create parameters in AWS Systems Manager Parameter Store
 - Permissions to create and modify VPC security groups
 - Permissions to create Lambda functions with VPC configuration
+- Permissions to create VPC endpoints (if your Lambda functions need to access AWS services)
 
 ## Setup Instructions
 
@@ -137,11 +129,12 @@ These files contain sensitive information and are excluded from Git via `.gitign
    - Set up Amazon Cognito resources for authentication
    - Create necessary IAM roles
    - Create Lambda functions for DB performance analysis
+   - Configure VPC endpoints for AWS services if needed
    - Create an Amazon Bedrock AgentCore Gateway
    - Create Gateway targets for the Lambda functions
    - Configure everything to work together
 
-4. Configure Amazon Q to use the gateway:
+5. Configure Amazon Q to use the gateway:
    ```bash
    source venv/bin/activate
    python3 scripts/get_token.py
@@ -173,6 +166,9 @@ The DB Performance Analyzer provides several tools:
 - **I/O Analysis**: Analyzes I/O patterns, buffer usage, and checkpoint activity to identify bottlenecks
 - **Replication Analysis**: Monitors replication status, lag, and health to ensure high availability
 - **System Health**: Provides overall system health metrics, including cache hit ratios, deadlocks, and long-running transactions
+- **Query Explanation**: Explains query execution plans and provides optimization suggestions
+- **DDL Extraction**: Extracts Data Definition Language (DDL) statements for database objects
+- **Query Execution**: Safely executes queries and returns results
 
 ## Key Benefits
 
@@ -182,6 +178,87 @@ The DB Performance Analyzer provides several tools:
 - **Educational**: Learn about database internals and best practices through AI explanations
 - **Accessible**: No need to remember complex SQL queries or monitoring commands
 - **Comprehensive**: Covers multiple aspects of database performance in one tool
+
+## Troubleshooting
+
+### VPC Connectivity Issues
+
+If your Lambda functions are having trouble connecting to AWS services:
+
+1. **Check DNS Settings**:
+   - Ensure DNS resolution and DNS hostnames are enabled for your VPC
+   - Verify that private DNS is enabled for your VPC endpoints
+
+2. **Verify Environment Variables**:
+   - Lambda functions need the `AWS_REGION` environment variable set correctly
+   - For services like Secrets Manager, ensure the region is specified in the code
+
+3. **Test Connectivity**:
+   ```bash
+   python3 scripts/test_vpc_connectivity.py
+   ```
+
+4. **Check Security Groups**:
+   - Ensure the Lambda security group allows outbound traffic to the VPC endpoint security group
+   - Ensure the VPC endpoint security group allows inbound traffic from the Lambda security group
+
+5. **Check Route Tables**:
+   - Ensure that the subnets where your Lambda function runs have route tables with proper routes
+
+6. **Manual Verification Commands**:
+   ```bash
+   # Check DNS settings
+   aws ec2 describe-vpc-attribute --vpc-id YOUR_VPC_ID --attribute enableDnsSupport
+   aws ec2 describe-vpc-attribute --vpc-id YOUR_VPC_ID --attribute enableDnsHostnames
+
+   # List VPC endpoints
+   aws ec2 describe-vpc-endpoints --filters "Name=vpc-id,Values=YOUR_VPC_ID"
+
+   # Check route tables for subnets
+   aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=YOUR_SUBNET_ID"
+   ```
+
+### Lambda Function Issues
+
+If your Lambda functions are failing with errors related to missing environment variables:
+
+1. **Check Required Environment Variables**:
+   - Ensure all required environment variables are set in the Lambda configuration
+   - The `REGION` environment variable is particularly important for AWS service access
+
+2. **Update Lambda Configuration**:
+   ```bash
+   aws lambda update-function-configuration \
+     --function-name DBPerformanceAnalyzer \
+     --environment "Variables={REGION=us-west-2}" \
+     --region us-west-2
+   ```
+
+3. **Error Description**:
+   If you see errors like `Error: Failed to extract database object DDL: 'REGION'` or `cannot access local variable 'conn'`, it's likely due to missing environment variables.
+
+4. **Alternative Solution**:
+   You can also update the Lambda function code to handle missing environment variables with sensible defaults:
+   ```python
+   region = os.getenv('REGION', os.getenv('AWS_REGION', 'us-west-2'))
+   ```
+
+### Secret Management Issues
+
+If you're having trouble with database secrets:
+
+1. **Check Secret Format**:
+   - Secrets must contain `username`, `password`, `host`, `port`, and `dbname` fields
+   - The setup_database.sh script now handles special characters in secret names
+
+2. **Verify Secret Access**:
+   - Ensure the Lambda execution role has permission to access the secret
+   - Check that the secret is in the same region as the Lambda function
+
+3. **Test Secret Access**:
+   ```bash
+   ./scripts/list_secrets.sh --filter your-cluster-name
+   ```
 
 ## Cleanup
 
@@ -197,6 +274,7 @@ This will delete:
 - Gateway
 - Cognito resources
 - IAM roles
+- VPC endpoints (if created)
 - Configuration files
 
 Note: The script will not delete the secrets in AWS Secrets Manager or parameters in SSM Parameter Store by default. To delete these resources as well, use:
@@ -215,12 +293,6 @@ python3 scripts/get_token.py
 deactivate
 ```
 
-## Troubleshooting
-
-- **Gateway Connection Issues**: Check if your token has expired and run `get_token.py`
-- **Lambda Execution Errors**: Check CloudWatch Logs for the Lambda functions
-- **Permission Issues**: Verify IAM roles have the correct permissions
-
 ## Example Queries
 
 Here are some example queries you can ask the DB Performance Analyzer:
@@ -233,6 +305,7 @@ Here are some example queries you can ask the DB Performance Analyzer:
 - "Check if there's any replication lag in my database"
 - "Give me an overall health check of my production database"
 - "Explain the execution plan for this query: SELECT * FROM users WHERE email LIKE '%example.com'"
+- "Extract the DDL for the users table in my database"
 
 ## Future Enhancements
 

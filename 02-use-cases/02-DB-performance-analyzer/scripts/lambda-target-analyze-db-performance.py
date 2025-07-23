@@ -16,7 +16,7 @@ lambda_target_config = {
                 "inlinePayload": [
                     {
                         "name": "explain_query",
-                        "description": "Analyzes and explains the execution plan for a given SQL query. Get the environment and query from the user and use the action_type value as explain_query. ",
+                        "description": "Analyzes and explains the execution plan for a given SQL query. Get the environment and query from the user. Use action_type default value as explain_query. ",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -35,7 +35,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "extract_ddl",
-                        "description": "Extracts the DDL (Data Definition Language) for a given database object. Get the environment, object_type (Type of the object like table, view, function, procedure etc..), object_name (The name of the database object to extract DDL for), object_schema (The schema of the database object to extract DDL for) from the user and use the action_type value as extract_ddl. ",
+                        "description": "Extracts the DDL (Data Definition Language) for a given database object. Get the environment, object_type (Type of the object like table, view, function, procedure etc..), object_name (The name of the database object to extract DDL for), object_schema (The schema of the database object to extract DDL for) from the user. Use action_type default value as extract_ddl. ",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -60,7 +60,7 @@ lambda_target_config = {
                         },
                         {
                         "name": "execute_query",
-                        "description": "Execute read-only queries safely and return results with monitoring. Get the environment and query from the user and use the action_type value as execute_query. ",
+                        "description": "Execute read-only queries safely and return results with monitoring. Get the environment and query from the user. Use action_type default value as execute_query. ",
                         "inputSchema": {
                             "type": "object",
                             "properties": {

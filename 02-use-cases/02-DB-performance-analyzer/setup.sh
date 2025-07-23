@@ -68,6 +68,13 @@ else
     echo "Warning: No database configuration found. Lambda will be created without VPC configuration."
 fi
 
+# Step 5b: Create VPC endpoints for AWS services
+if [ -f "config/vpc_config.env" ]; then
+    echo "Step 5b: Creating VPC endpoints for AWS services..."
+    chmod +x ./scripts/create_vpc_endpoints.sh
+    ./scripts/create_vpc_endpoints.sh
+fi
+
 # Step 6: Create Lambda function
 echo "Step 6: Creating Lambda function..."
 ./scripts/create_lambda.sh
@@ -104,10 +111,10 @@ if [ -f "config/gateway_config.env" ]; then
     source config/gateway_config.env
     echo "Loaded Gateway configuration with GATEWAY_IDENTIFIER: $GATEWAY_IDENTIFIER"
 else
-    echo "Warning: config/gateway_config.env not found, checking scripts directory..."
-    if [ -f "scripts/../config/gateway_config.env" ]; then
+    echo "Warning: config/gateway_config.env not found, checking parent directory..."
+    if [ -f "../config/gateway_config.env" ]; then
         # Copy the file to the expected location
-        cp scripts/../config/gateway_config.env config/
+        cp ../config/gateway_config.env config/
         source config/gateway_config.env
         echo "Loaded Gateway configuration with GATEWAY_IDENTIFIER: $GATEWAY_IDENTIFIER"
     else
