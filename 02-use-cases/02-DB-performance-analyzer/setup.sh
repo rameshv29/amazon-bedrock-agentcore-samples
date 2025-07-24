@@ -177,9 +177,28 @@ curl -s -X POST \
     "params": {
       "name": "db-performance-analyzer___explain_query",
       "arguments": {
-        "environment": "production",
+        "environment": "dev",
         "action_type": "explain_query",
-        "query": "SELECT * FROM users WHERE id = 1"
+        "query": "SELECT version()"
+      }
+    }
+  }' \
+  "$MCP_ENDPOINT" | jq .
+
+# Test invoking slow_query tool with the correct format
+echo -e "\nTesting slow_query tool..."
+curl -s -X POST \
+  -H "Authorization: Bearer $COGNITO_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "invoke-slow-query-request",
+    "method": "tools/call",
+    "params": {
+      "name": "pgstat-analyzer___slow_query",
+      "arguments": {
+        "environment": "dev",
+        "action_type": "slow_query"
       }
     }
   }' \

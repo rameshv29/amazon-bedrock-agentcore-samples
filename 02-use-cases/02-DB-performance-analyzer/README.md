@@ -46,6 +46,8 @@ The Lambda functions are deployed in the same VPC as your database, allowing sec
 ├── setup.sh                # Main setup script
 ├── setup_database.sh       # Database configuration script
 ├── cleanup.sh              # Cleanup script
+├── setup_observability.sh  # Sets up observability for gateway and targets
+├── cleanup_observability.sh # Cleans up observability resources
 ├── config/                 # Configuration files (generated during setup)
 │   └── *.env               # Environment-specific configuration files (not committed to Git)
 └── scripts/                # Supporting scripts
@@ -179,6 +181,29 @@ The DB Performance Analyzer provides several tools:
 - **Accessible**: No need to remember complex SQL queries or monitoring commands
 - **Comprehensive**: Covers multiple aspects of database performance in one tool
 
+## Observability
+
+The DB Performance Analyzer includes observability features to help you monitor and troubleshoot your AgentCore Gateway and Lambda targets.
+
+### Quick Setup
+
+1. Run the observability setup script:
+   ```bash
+   ./setup_observability.sh
+   ```
+
+2. Enable CloudWatch Transaction Search in the CloudWatch console.
+
+3. View your data in CloudWatch Logs, X-Ray Traces, and Transaction Search.
+
+### Cleanup
+
+```bash
+./cleanup_observability.sh
+```
+
+For comprehensive documentation on AgentCore observability features, including detailed setup instructions, configuration options for agents outside the runtime, custom headers, and best practices, see [AgentCore Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html).
+
 ## Troubleshooting
 
 ### VPC Connectivity Issues
@@ -259,6 +284,14 @@ If you're having trouble with database secrets:
    ```bash
    ./scripts/list_secrets.sh --filter your-cluster-name
    ```
+
+### Observability Troubleshooting
+
+If you don't see observability data:
+
+1. **Check CloudWatch Transaction Search**: Ensure it's enabled in the CloudWatch console
+2. **Verify Log Groups**: Check that the log groups exist for your gateway and targets
+3. **Generate Traffic**: Make a few requests to the gateway to generate traces and logs
 
 ## Cleanup
 
