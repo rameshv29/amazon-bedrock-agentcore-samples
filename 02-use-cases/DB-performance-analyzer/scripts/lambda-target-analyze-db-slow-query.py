@@ -23,7 +23,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'slow_query' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -39,7 +40,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'connection_management_issues' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -55,7 +57,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'index_analysis' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -71,7 +74,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'autovacuum_analysis' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -87,7 +91,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'io_analysis' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -103,7 +108,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'replication_analysis' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]
@@ -119,7 +125,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'system_health' for this tool."
                                 }
                             },
                             "required": ["environment","action_type"]

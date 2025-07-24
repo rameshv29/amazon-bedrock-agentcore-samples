@@ -1,4 +1,3 @@
-
 import boto3
 import os
 
@@ -24,7 +23,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'explain_query' for this tool."
                                 },
                                  "query": {
                                     "type": "string"
@@ -43,7 +43,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'extract_ddl' for this tool."
                                 },
                                  "object_type": {
                                     "type": "string"
@@ -68,7 +69,8 @@ lambda_target_config = {
                                     "type": "string"
                                 },
                                 "action_type": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "description": "The type of action to perform. Use 'execute_query' for this tool."
                                 },
                                  "query": {
                                     "type": "string"
