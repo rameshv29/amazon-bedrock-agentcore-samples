@@ -307,7 +307,7 @@ def setup_database_access(cluster_name, environment, username=None, password=Non
         os.makedirs(config_dir, exist_ok=True)
         with open(os.path.join(config_dir, f"db_{environment}_config.env"), "w") as f:
             f.write(f"export DB_CLUSTER_NAME={cluster_name}\n")
-            f.write(f"export DB_SECRET_NAME={secret_name}\n")
+            f.write(f"# DB_SECRET_NAME stored securely in SSM Parameter Store: {ssm_parameter_name}\n")
             f.write(f"export DB_SSM_PARAMETER={ssm_parameter_name}\n")
             f.write(f"export DB_ENDPOINT={endpoint}\n")
             f.write(f"export DB_PORT={port}\n")
