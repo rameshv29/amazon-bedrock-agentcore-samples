@@ -1259,7 +1259,6 @@ def connect_to_db(secret_name):
     """Establish database connection"""
     cur_secret = secret_name
     secret = get_secret(cur_secret)
-    print(secret)
     try:
         print("in connect_to_db")
         conn = psycopg2.connect(
