@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for package management
+RUN pip install uv
+
+# Install the original AWS CloudWatch MCP server using pip
+RUN pip install awslabs.cloudwatch-mcp-server
+
+# Copy our modified server file
+COPY modified-cloudwatch-server.py .
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run the modified server with streamable_http transport
+CMD ["python", "modified-cloudwatch-server.py"]
