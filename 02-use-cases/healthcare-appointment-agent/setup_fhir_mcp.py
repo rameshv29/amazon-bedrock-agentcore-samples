@@ -142,7 +142,7 @@ def create_egress_oauth_provider(gateway_name):
                     }
                 },
                 "clientId": os.getenv("cognito_client_id"),
-                "clientSecret": os.getenv("cognito_client_secret")
+                "clientSecret": utils.get_cognito_client_secret(boto_session)
             }
         }
 
