@@ -266,11 +266,7 @@ done
 echo "Deleting role: AgentCoreGatewayRole"
 aws iam delete-role --role-name AgentCoreGatewayRole || echo "Failed to delete Gateway role, continuing..."
 
-# Remove configuration files
-echo "Removing configuration files..."
-rm -f config/*.env
-
-# Delete secrets and SSM parameters if requested
+# Delete secrets and SSM parameters if requested (before removing config files)
 if [ "$DELETE_SECRETS" = true ]; then
     echo "Deleting secrets and SSM parameters..."
     
@@ -318,8 +314,10 @@ if [ "$DELETE_SECRETS" = true ]; then
             --name "$PARAM_NAME" \
             --region $AWS_REGION || echo "Failed to delete parameter $PARAM_NAME, continuing..."
     done
-    
-    # Database configuration files are removed with other config files
 fi
+
+# Remove configuration files
+echo "Removing configuration files..."
+rm -f config/*.env
 
 echo "Cleanup completed"

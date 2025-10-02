@@ -3,7 +3,7 @@ import os
 
 agentcore_client = boto3.client(
     'bedrock-agentcore-control', 
-    region_name=os.getenv('AWS_REGION', 'us-west-2'), 
+    region_name=os.getenv('AWS_REGION', os.getenv('REGION', 'us-west-2')), 
     endpoint_url=os.getenv('ENDPOINT_URL')
 )
 

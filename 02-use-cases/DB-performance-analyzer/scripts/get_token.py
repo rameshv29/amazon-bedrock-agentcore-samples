@@ -38,8 +38,9 @@ def main():
                 key, value = line.replace('export ', '').strip().split('=', 1)
                 cognito_config[key] = value.strip('"\'')
     
-    # Get token
-    url = f"https://{cognito_config['COGNITO_DOMAIN_NAME']}.auth.us-west-2.amazoncognito.com/oauth2/token"
+    # Get token - use AWS_REGION environment variable or default to us-west-2
+    region = os.environ.get('AWS_REGION', 'us-west-2')
+    url = f"https://{cognito_config['COGNITO_DOMAIN_NAME']}.auth.{region}.amazoncognito.com/oauth2/token"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {
         'grant_type': 'client_credentials',
@@ -110,8 +111,9 @@ def main():
         if not gateway_id:
             print("Warning: Could not find GATEWAY_IDENTIFIER in config files")
         else:
-            # Update mcp.json with the gateway ID and token
-            gateway_url = f"https://{gateway_id}.gateway.bedrock-agentcore.us-west-2.amazonaws.com/mcp"
+            # Update mcp.json with the gateway ID and token - use AWS_REGION environment variable
+            region = os.environ.get('AWS_REGION', 'us-west-2')
+            gateway_url = f"https://{gateway_id}.gateway.bedrock-agentcore.{region}.amazonaws.com/mcp"
             server_name = "db-performance-analyzer"
             
             # Update existing entries

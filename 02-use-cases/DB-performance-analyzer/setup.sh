@@ -4,6 +4,16 @@ set -e
 echo "=== AgentCore Gateway Setup for DB Performance Analyzer ==="
 echo "This script will create all necessary resources for AgentCore Gateway"
 
+# Check if AWS_REGION is set
+if [ -z "$AWS_REGION" ]; then
+    echo "Warning: AWS_REGION environment variable is not set. Using default: us-west-2"
+    echo "To use a different region, set AWS_REGION before running this script:"
+    echo "  export AWS_REGION=your-preferred-region"
+    export AWS_REGION="us-west-2"
+fi
+
+echo "Using AWS Region: $AWS_REGION"
+
 # Create config directory
 mkdir -p config
 
@@ -27,7 +37,7 @@ echo "Step 2: Creating IAM role for Gateway..."
 # Step 3: Set up Cognito resources
 echo "Step 3: Setting up Cognito resources..."
 source venv/bin/activate
-python3 scripts/setup_cognito.py
+AWS_REGION=$AWS_REGION python3 scripts/setup_cognito.py
 deactivate
 
 # Load Cognito configuration
@@ -50,7 +60,7 @@ if [ -f "config/db_prod_config.env" ]; then
     source config/db_prod_config.env
     if [ ! -z "$DB_CLUSTER_NAME" ]; then
         source venv/bin/activate
-        python3 scripts/get_vpc_config.py --cluster-name "$DB_CLUSTER_NAME"
+        AWS_REGION=$AWS_REGION python3 scripts/get_vpc_config.py --cluster-name "$DB_CLUSTER_NAME" --region "$AWS_REGION"
         deactivate
     else
         echo "Warning: DB_CLUSTER_NAME not found in config/db_prod_config.env"
@@ -59,7 +69,7 @@ elif [ -f "config/db_dev_config.env" ]; then
     source config/db_dev_config.env
     if [ ! -z "$DB_CLUSTER_NAME" ]; then
         source venv/bin/activate
-        python3 scripts/get_vpc_config.py --cluster-name "$DB_CLUSTER_NAME"
+        AWS_REGION=$AWS_REGION python3 scripts/get_vpc_config.py --cluster-name "$DB_CLUSTER_NAME" --region "$AWS_REGION"
         deactivate
     else
         echo "Warning: DB_CLUSTER_NAME not found in config/db_dev_config.env"
@@ -103,7 +113,7 @@ echo "Setting ROLE_ARN=$ROLE_ARN"
 
 # Create the gateway
 source venv/bin/activate
-python3 scripts/create_gateway.py
+AWS_REGION=$AWS_REGION python3 scripts/create_gateway.py
 deactivate
 
 # Load Gateway configuration
@@ -132,7 +142,7 @@ export TARGET_DESCRIPTION="DB Performance Analyzer tools"
 
 # Create the target using create_target.py
 source venv/bin/activate
-python3 scripts/create_target.py
+AWS_REGION=$AWS_REGION python3 scripts/create_target.py
 deactivate
 
 # Step 9: Test Gateway
@@ -143,7 +153,7 @@ MCP_ENDPOINT="https://${GATEWAY_IDENTIFIER}.gateway.bedrock-agentcore.${REGION}.
 # Get a fresh token
 echo "Getting a fresh token for testing..."
 source venv/bin/activate
-python3 scripts/get_token.py
+AWS_REGION=$AWS_REGION python3 scripts/get_token.py
 deactivate
 
 # Reload the Cognito configuration to get the fresh token

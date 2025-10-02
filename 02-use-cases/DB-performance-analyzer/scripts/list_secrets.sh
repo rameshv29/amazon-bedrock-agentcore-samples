@@ -1,7 +1,7 @@
 #!/bin/bash
 # List all secrets in the AWS account
 
-# Default region
+# Default region - use AWS_REGION if set, otherwise default to us-west-2
 REGION=${AWS_REGION:-"us-west-2"}
 FILTER=""
 

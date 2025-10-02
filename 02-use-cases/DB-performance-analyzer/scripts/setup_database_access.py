@@ -5,7 +5,10 @@ import argparse
 import uuid
 import sys
 
-def verify_secret(secret_name, region='us-west-2', test_connection=True):
+def verify_secret(secret_name, region=None, test_connection=True):
+    if region is None:
+        import os
+        region = os.environ.get('AWS_REGION', 'us-west-2')
     """
     Verify that a secret exists and contains the required fields
     """
@@ -109,7 +112,10 @@ def verify_secret(secret_name, region='us-west-2', test_connection=True):
         print(f"Error verifying secret")
         return False
 
-def setup_database_access(cluster_name, environment, username=None, password=None, existing_secret=None, region='us-west-2'):
+def setup_database_access(cluster_name, environment, username=None, password=None, existing_secret=None, region=None):
+    if region is None:
+        import os
+        region = os.environ.get('AWS_REGION', 'us-west-2')
     """
     Set up database access by:
     1. Getting the cluster endpoint from RDS
@@ -323,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument("--username", help="Database username")
     parser.add_argument("--password", help="Database password")
     parser.add_argument("--existing-secret", help="Name of existing secret in AWS Secrets Manager")
-    parser.add_argument("--region", default="us-west-2", help="AWS region")
+    parser.add_argument("--region", help="AWS region (default: from AWS_REGION env var or us-west-2)")
     parser.add_argument("--test-connection", action="store_true", help="Test database connection after setup")
     parser.add_argument("--verify-only", help="Only verify an existing secret without creating a new one")
     parser.add_argument("--non-interactive", action="store_true", help="Run in non-interactive mode (no prompts)")
@@ -332,10 +338,19 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    # Set region from args, environment variable, or default
+    import os
+    if args.region:
+        region = args.region
+    else:
+        region = os.environ.get('AWS_REGION', 'us-west-2')
+    
+    print(f"Using AWS Region: {region}")
+    
     # Handle verify-only mode
     if args.verify_only:
         print(f"Verifying secret {args.verify_only}...")
-        success = verify_secret(args.verify_only, args.region, args.test_connection)
+        success = verify_secret(args.verify_only, region, args.test_connection)
         sys.exit(0 if success else 1)
     
     # Validate arguments
@@ -348,18 +363,18 @@ if __name__ == "__main__":
         args.username,
         args.password,
         args.existing_secret,
-        args.region
+        region
     )
     
     # Test connection if requested
     if success and args.test_connection:
         # Get the secret name from SSM Parameter Store
-        ssm = boto3.client('ssm', region_name=args.region)
+        ssm = boto3.client('ssm', region_name=region)
         try:
             response = ssm.get_parameter(Name=f"/AuroraOps/{args.environment}")
             secret_name = response['Parameter']['Value']
             print("Testing database connection using retrieved secret.")
-            verify_secret(secret_name, args.region, True)
+            verify_secret(secret_name, region, True)
         except Exception as e:
             print(f"Error testing connection: {str(e)}")
             success = False

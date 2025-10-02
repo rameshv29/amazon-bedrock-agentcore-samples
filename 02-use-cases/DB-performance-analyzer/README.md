@@ -78,7 +78,7 @@ These files contain configuration information and are excluded from Git via `.gi
 ## Prerequisites
 
 - AWS CLI configured with appropriate permissions
-- Python 3.9 or higher
+- Python 3.12 or higher (minimum required version)
 - Boto3 library installed
 - jq command-line tool installed
 - Access to an Amazon Aurora PostgreSQL or RDS PostgreSQL database
@@ -93,7 +93,7 @@ These files contain configuration information and are excluded from Git via `.gi
 1. Clone the repository:
    ```bash
    git clone https://github.com/awslabs/amazon-bedrock-agentcore-samples.git
-   cd amazon-bedrock-agentcore-samples/02-use-cases/02-DB-performance-analyzer
+   cd amazon-bedrock-agentcore-samples/02-use-cases/DB-performance-analyzer
    ```
 
 2. Create a Python virtual environment:
@@ -103,9 +103,16 @@ These files contain configuration information and are excluded from Git via `.gi
    pip install -r requirements.txt
    ```
 
+   **Note**: If you have multiple Python versions installed and `python3` doesn't point to Python 3.12+, you may need to:
+   - Use the specific version: `python3.12 -m venv venv` 
+   - Or create a symlink: `sudo ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3`
+   - Or use `which python3.12` to find the correct path and use it directly
+
 3. Set up database access:
    ```bash
-   ./setup_database.sh --cluster-name your-aurora-cluster --environment prod
+   # Ensure AWS_REGION is set before running database setup
+   export AWS_REGION=your-preferred-region  # e.g., us-east-1, eu-west-1, etc.
+   ./setup_database.sh --cluster-name your-aurora-cluster --environment prod --region $AWS_REGION
    ```
 
    This script will:
@@ -119,10 +126,30 @@ These files contain configuration information and are excluded from Git via `.gi
    
    You can also specify an existing secret directly:
    ```bash
-   ./setup_database.sh --cluster-name your-aurora-cluster --environment prod --existing-secret your-secret-name
+   ./setup_database.sh --cluster-name your-aurora-cluster --environment prod --existing-secret your-secret-name --region $AWS_REGION
    ```
 
-4. Run the main setup script:
+   **For multiple database clusters**: Run the setup_database.sh script separately for each cluster with different environments:
+   ```bash
+   # Production cluster
+   ./setup_database.sh --cluster-name prod-cluster --environment prod --region $AWS_REGION
+   
+   # Development cluster  
+   ./setup_database.sh --cluster-name dev-cluster --environment dev --region $AWS_REGION
+   ```
+
+   **Troubleshooting database setup**:
+   - If `--existing-secret` fails, try using the secret ARN instead: `--secret-arn arn:aws:secretsmanager:region:account:secret:name`
+   - List available secrets: `./scripts/list_secrets.sh --filter your-cluster-name --region $AWS_REGION`
+   - For secrets with special characters, the script will automatically find the ARN
+   - The script will automatically detect secrets associated with your cluster and prompt you to choose
+
+4. Set your AWS region (required):
+   ```bash
+   export AWS_REGION=your-preferred-region  # e.g., us-east-1, eu-west-1, etc.
+   ```
+
+5. Run the main setup script:
    ```bash
    ./setup.sh
    ```
@@ -136,7 +163,7 @@ These files contain configuration information and are excluded from Git via `.gi
    - Create Gateway targets for the Lambda functions
    - Configure everything to work together
 
-5. Configure Amazon Q to use the gateway:
+6. Configure Amazon Q to use the gateway:
    ```bash
    source venv/bin/activate
    python3 scripts/get_token.py
@@ -205,6 +232,24 @@ The DB Performance Analyzer includes observability features to help you monitor 
 For comprehensive documentation on AgentCore observability features, including detailed setup instructions, configuration options for agents outside the runtime, custom headers, and best practices, see [AgentCore Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html).
 
 ## Troubleshooting
+
+### Region Configuration Issues
+
+If you encounter errors related to regions or endpoints:
+
+1. **Ensure AWS_REGION is set**:
+   ```bash
+   echo $AWS_REGION  # Should show your region
+   export AWS_REGION=your-region  # Set if not already set
+   ```
+
+2. **Verify region consistency**:
+   - All resources (database, Lambda, Gateway) should be in the same region
+   - The region must support Amazon Bedrock AgentCore
+
+3. **Common region-related errors**:
+   - `EndpointConnectionError`: Usually indicates wrong region or service not available
+   - `InvalidParameterValue`: May indicate region mismatch between resources
 
 ### VPC Connectivity Issues
 
@@ -293,6 +338,15 @@ If you don't see observability data:
 2. **Verify Log Groups**: Check that the log groups exist for your gateway and targets
 3. **Generate Traffic**: Make a few requests to the gateway to generate traces and logs
 
+## Environment Variables
+
+The following environment variables are used by the scripts and should be set before running setup:
+
+- **AWS_REGION**: The AWS region where resources will be created (e.g., `us-east-1`, `eu-west-1`, `ap-southeast-1`)
+  ```bash
+  export AWS_REGION=us-east-1  # Replace with your preferred region
+  ```
+
 ## Cleanup
 
 To remove all resources created by this project:
@@ -310,11 +364,18 @@ This will delete:
 - VPC endpoints (if created)
 - Configuration files
 
-Note: The script will not delete the secrets in AWS Secrets Manager or parameters in SSM Parameter Store by default. To delete these resources as well, use:
+**Important**: The cleanup script will NOT delete secrets in AWS Secrets Manager or parameters in SSM Parameter Store by default. These contain your database credentials and are preserved for safety.
+
+To delete these resources as well, use:
 
 ```bash
 ./cleanup.sh --delete-secrets
 ```
+
+**Warning**: Using `--delete-secrets` will permanently delete:
+- Database credential secrets from AWS Secrets Manager
+- SSM Parameter Store entries containing secret references
+- This action cannot be undone and will require you to reconfigure database access
 
 ## Refreshing Authentication
 

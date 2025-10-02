@@ -9,7 +9,7 @@ def get_vpc_config(cluster_name, region):
     """
     Get VPC configuration for a database cluster and set up security groups
     """
-    print(f"Getting VPC configuration for cluster: {cluster_name}")
+    print(f"Getting VPC configuration for cluster: {cluster_name} in region: {region}")
     
     # Initialize AWS clients
     rds = boto3.client('rds', region_name=region)
@@ -166,11 +166,19 @@ def get_vpc_config(cluster_name, region):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Get VPC configuration for a database cluster")
     parser.add_argument("--cluster-name", required=True, help="RDS/Aurora cluster name")
-    parser.add_argument("--region", default="us-west-2", help="AWS region")
+    parser.add_argument("--region", help="AWS region (default: from AWS_REGION env var or us-west-2)")
     
     args = parser.parse_args()
     
-    success = get_vpc_config(args.cluster_name, args.region)
+    # Set region from args, environment variable, or default
+    if args.region:
+        region = args.region
+    else:
+        region = os.environ.get('AWS_REGION', 'us-west-2')
+    
+    print(f"Using AWS Region: {region}")
+    
+    success = get_vpc_config(args.cluster_name, region)
     
     if not success:
         sys.exit(1)

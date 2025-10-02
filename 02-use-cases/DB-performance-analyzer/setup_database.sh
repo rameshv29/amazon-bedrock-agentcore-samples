@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Check if AWS_REGION is set and warn if using default
+if [ -z "$AWS_REGION" ]; then
+    echo "Warning: AWS_REGION environment variable is not set. Using default: us-west-2"
+    echo "To use a different region, set AWS_REGION before running this script:"
+    echo "  export AWS_REGION=your-preferred-region"
+    echo "  ./setup_database.sh --cluster-name your-cluster --environment prod --region \$AWS_REGION"
+    echo ""
+fi
+
 # Function to find secret ARN by name
 find_secret_arn() {
     local SECRET_NAME=$1
@@ -279,7 +288,7 @@ USERNAME=""
 PASSWORD=""
 EXISTING_SECRET=""
 SECRET_ARN=""
-REGION="us-west-2"
+REGION=${AWS_REGION:-"us-west-2"}
 TEST_CONNECTION=false
 VERIFY_ONLY=""
 NON_INTERACTIVE=false
@@ -314,8 +323,18 @@ print_usage() {
     echo "      associated with the database cluster. If not found, it will prompt for credentials."
     echo ""
     echo "Helper scripts:"
-    echo "  ./scripts/find_db_secret.py --cluster-name <cluster_name>  # Find secret associated with a cluster"
-    echo "  ./scripts/list_secrets.sh [--filter <filter_text>]         # List all available secrets"
+    echo "  ./scripts/list_secrets.sh [--filter <filter_text>] [--region <region>]  # List all available secrets"
+    echo ""
+    echo "Examples:"
+    echo "  # Set region and run for production cluster"
+    echo "  export AWS_REGION=us-east-1"
+    echo "  ./setup_database.sh --cluster-name prod-cluster --environment prod --region \$AWS_REGION"
+    echo ""
+    echo "  # Use existing secret by name"
+    echo "  ./setup_database.sh --cluster-name my-cluster --environment dev --existing-secret my-secret --region \$AWS_REGION"
+    echo ""
+    echo "  # Use existing secret by ARN (recommended for secrets with special characters)"
+    echo "  ./setup_database.sh --cluster-name my-cluster --environment dev --secret-arn arn:aws:secretsmanager:region:account:secret:name"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -425,6 +444,13 @@ if [ -z "$CLUSTER_NAME" ] || [ -z "$ENVIRONMENT" ]; then
     print_usage
     exit 1
 fi
+
+# Ensure region is set (use command line arg, then AWS_REGION, then default)
+if [ -z "$REGION" ]; then
+    REGION=${AWS_REGION:-"us-west-2"}
+fi
+
+echo "Using AWS Region: $REGION"
 
 # Validate environment
 if [ "$ENVIRONMENT" != "prod" ] && [ "$ENVIRONMENT" != "dev" ]; then
