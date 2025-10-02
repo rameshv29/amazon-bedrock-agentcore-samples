@@ -97,16 +97,62 @@ These files contain configuration information and are excluded from Git via `.gi
    ```
 
 2. Create a Python virtual environment:
+   **Note**: If you have multiple Python versions installed and `python3` doesn't point to Python 3.12+, you may need to:
+
+   **For macOS/Linux:**
+   ```bash
+   # Check current Python version
+   python3 --version
+   
+   # If not 3.12+, find available Python versions
+   ls /usr/bin/python3* /usr/local/bin/python3* 2>/dev/null | grep -E "python3\.[0-9]+"
+   
+   # Find the path of Python 3.12+ (replace 3.12 with your available version)
+   PYTHON_PATH=$(which python3.12 || which python3.13 || which python3.11)
+   echo "Found Python at: $PYTHON_PATH"
+   
+   # Option 1: Use the specific path directly
+   $PYTHON_PATH -m venv venv
+   
+   # Option 2: Create a symlink (requires admin privileges)
+   sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
+   source ~/.bashrc
+   ```
+
+   **For Windows (PowerShell):**
+   ```powershell
+   # Check current Python version
+   python --version
+   
+   # Find available Python versions
+   py -0  # Lists all installed Python versions
+   
+   # Use specific version (replace 3.12 with your available version)
+   py -3.12 -m venv venv
+   
+   # Or find the path and use it
+   $pythonPath = (py -3.12 -c "import sys; print(sys.executable)")
+   Write-Host "Found Python at: $pythonPath"
+   & $pythonPath -m venv venv
+   ```
+
+   **For Windows (Command Prompt):**
+   ```cmd
+   # Check current Python version
+   python --version
+   
+   # Find available Python versions
+   py -0
+   
+   # Use specific version
+   py -3.12 -m venv venv
+   ```
+
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
    ```
-
-   **Note**: If you have multiple Python versions installed and `python3` doesn't point to Python 3.12+, you may need to:
-   - Use the specific version: `python3.12 -m venv venv` 
-   - Or create a symlink: `sudo ln -sf /usr/local/bin/python3.12 /usr/local/bin/python3`
-   - Or use `which python3.12` to find the correct path and use it directly
 
 3. Set up database access:
    ```bash
@@ -232,6 +278,50 @@ The DB Performance Analyzer includes observability features to help you monitor 
 For comprehensive documentation on AgentCore observability features, including detailed setup instructions, configuration options for agents outside the runtime, custom headers, and best practices, see [AgentCore Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html).
 
 ## Troubleshooting
+
+### Python Version Issues
+
+If you encounter Python version-related errors:
+
+1. **Check your Python version**:
+   ```bash
+   # macOS/Linux
+   python3 --version
+   
+   # Windows
+   python --version
+   py --version
+   ```
+
+2. **Find available Python versions**:
+   ```bash
+   # macOS/Linux - find all Python 3.x versions
+   find /usr/bin /usr/local/bin /opt/homebrew/bin -name "python3.*" 2>/dev/null | sort
+   
+   # Or use which to find specific versions
+   which python3.12 python3.13 python3.11 2>/dev/null
+   ```
+   
+   ```powershell
+   # Windows - list all Python versions
+   py -0
+   ```
+
+3. **Use the correct Python version**:
+   ```bash
+   # macOS/Linux - use the found path
+   /usr/local/bin/python3.12 -m venv venv  # Replace with your actual path
+   
+   # Windows - use py launcher
+   py -3.12 -m venv venv  # Replace 3.12 with your version
+   ```
+
+4. **Verify the virtual environment uses the correct version**:
+   ```bash
+   source venv/bin/activate  # macOS/Linux
+   venv\Scripts\activate     # Windows
+   python --version          # Should show 3.12+
+   ```
 
 ### Region Configuration Issues
 
